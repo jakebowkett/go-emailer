@@ -11,16 +11,21 @@ import (
 )
 
 type Emailer struct {
-	Host    string
-	Port    string
-	User    string
-	Pass    string
-	From    string
-	Name    string
-	Timeout int
+	Host     string
+	Port     string
+	User     string
+	Pass     string
+	From     string
+	Name     string
+	Timeout  int
+	Disabled bool
 }
 
-func (em *Emailer) Email(recipient, subject, body string) (err error) {
+func (em *Emailer) Send(recipient, subject, body string) (err error) {
+
+	if em.Disabled {
+		return nil
+	}
 
 	addr := em.Host + ":" + em.Port
 	auth := smtp.PlainAuth("", em.User, em.Pass, em.Host)
@@ -45,6 +50,7 @@ func (em *Emailer) Email(recipient, subject, body string) (err error) {
 		return err
 	}
 	defer c.Close()
+
 	if ok, _ := c.Extension("STARTTLS"); ok {
 		config := &tls.Config{ServerName: em.Host}
 		if err = c.StartTLS(config); err != nil {
